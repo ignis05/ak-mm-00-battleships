@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="author" content="Grzegorz Mikołajczyk">
+    <link rel="icon" href="img/ship.png">
+    <title>Statki</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        .poleheatmap {
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+            float: left;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .poleheatmap:nth-child(10n+1) {
+            clear: both;
+        }
+
+        #targetingInfoDisplay {
+            margin-top: 200px;
+            text-align: left;
+            padding: 5px 20px;
+            font-weight: 100;
+        }
+
+        #aiTargeting {
+            display: none;
+            width: 220px;
+            height: auto;
+            position: fixed;
+            left: 5px;
+            top: 5px;
+            background: #6AFF4E;
+            border: 2px solid black;
+            box-sizing: content-box;
+            text-align: center;
+            border-radius: 10px;
+            font-weight: 900;
+            padding-top: 5px;
+        }
+
+        #planszaHeatmap {
+            display: block;
+            width: 200px;
+            left: 10px;
+            height: 200px;
+            position: absolute;
+            top: 25px;
+            background: white;
+        }
+
+
+        #all {
+            width: 830px;
+            margin: 0 auto;
+        }
+
+        .infoImg {
+            width: 25px;
+            height: 25px;
+            position: relative;
+            top: 10px;
+        }
+
+        body {
+            background: #4ED5FF;
+            overflow: auto;
+        }
+
+        .poleGry h1 {
+            color: black;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #poleGracza {
+            background: #3B50E8;
+            border-radius: 20px 0 0 20px;
+        }
+
+        #poleKomputera {
+            background: #3B50E8;
+            border-radius: 0 20px 20px 0;
+            margin-bottom: 10px;
+        }
+
+        .controlButton {
+            width: 100px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid black;
+            float: left;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .controlButton:hover {
+            border: 3px double red;
+            cursor: pointer;
+        }
+
+        #losujDlaGracza {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            border: 2px solid black;
+            width: 70px;
+            height: 50px;
+            background: white;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #usunGracza {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            border: 2px solid black;
+            width: 70px;
+            height: 50px;
+            background: white;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #usunGracza:hover {
+            border: 2px solid red;
+            cursor: pointer;
+        }
+
+        #losujDlaGracza:hover {
+            border: 2px solid red;
+            cursor: pointer;
+        }
+
+        #zmianaKierunku {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border: 2px solid black;
+            width: 70px;
+            height: 40px;
+            display: none;
+            background: white;
+            overflow: hidden;
+        }
+
+        #controlPanel {
+            border: 2px solid black;
+            width: 830px;
+            height: 60px;
+            background: white;
+            border-radius: 25px;
+            margin-bottom: 10px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            display: none;
+        }
+
+        #info {
+            width: 830px;
+            border: 2px solid black;
+            padding: 5px;
+            clear: both;
+            background: white;
+            border-radius: 15px;
+            user-select: auto;
+            padding-bottom: 10px;
+        }
+
+        #info h1 {
+            text-align: center;
+            color: #ff3333;
+        }
+
+        #info b {
+            font-size: 20px;
+        }
+
+        .pole:nth-child(10n+1) {
+            clear: both;
+        }
+
+        .poleGry {
+            text-align: center;
+            width: 350px;
+            border: 2px solid black;
+            height: 400px;
+            float: left;
+            position: relative;
+        }
+
+        .plansza {
+            margin: 10px auto;
+            width: 250px;
+            height: 250px;
+            box-sizing: content-box;
+            border: 1px solid black;
+        }
+
+        .pole {
+            width: 25px;
+            height: 25px;
+            border: 1px solid black;
+            float: left;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dockNaStatki {
+            width: 120px;
+            height: 400px;
+            border: 2px solid black;
+            float: left;
+            position: relative;
+            background: #6AFF4E;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        #dockNaStatki>* {
+            margin: 10px;
+            height: 25px;
+            display: block;
+            background: white;
+        }
+
+        /* #region statkidocku */
+        #st40 {
+            width: 100px;
+        }
+
+        #st30 {
+            width: 75px;
+        }
+
+        #st31 {
+            width: 75px;
+        }
+
+        #st20 {
+            width: 50px;
+        }
+
+        #st21 {
+            width: 50px;
+        }
+
+        #st22 {
+            width: 50px;
+        }
+
+        #st10 {
+            width: 25px;
+        }
+
+        #st11 {
+            width: 25px;
+        }
+
+        #st12 {
+            width: 25px;
+        }
+
+        #st13 {
+            width: 25px;
+        }
+
+        /* #endregion */
+
+        #START {
+            border: 2px solid black;
+            background: white;
+            text-align: center;
+            color: black;
+            font-family: 'Gill Sans', 'Gill Sans MT', 'Calibri', 'Trebuchet MS', sans-serif;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        #START:hover {
+            border: 2px solid red;
+            cursor: pointer;
+        }
+
+        #pokazRamki {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            border: 2px solid black;
+            height: 40px;
+            text-align: center;
+            background-color: white;
+            width: 50px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pokazRamki:hover {
+            border: 2px solid red;
+            cursor: pointer;
+        }
+
+        @media (max-width: 865px) {
+
+            #aiTargeting {
+                display: none !important;
+            }
+
+            #all {
+                width: auto !important;
+                margin: 0;
+            }
+
+            #zmianaKierunku {
+                top: 70px;
+            }
+
+            #dockNaStatki {
+                width: 95vw;
+                height: auto;
+                padding: 0 70px;
+                position: relative;
+                min-height: 50px;
+                margin-bottom: 5px;
+                min-width: 360px;
+            }
+
+            #dockNaStatki>* {
+                margin: 5px;
+                height: 7vw;
+                min-height: 25.2px;
+                display: inline-flex;
+                width: auto;
+                padding: 0;
+            }
+
+            #START {
+                border: 2px solid black;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                margin: 3px 0;
+                background: white;
+                text-align: center;
+                position: absolute;
+                left: 10px;
+                border-radius: 5px;
+                width: 60px;
+            }
+
+            #pokazRamki {
+                position: absolute;
+                margin: 0;
+                width: 60px;
+                right: 10px;
+                top: 3px;
+                border: 2px solid black;
+                height: 40px;
+                text-align: center;
+                background-color: white;
+                border-radius: 5px;
+            }
+
+            #info {
+                width: 95vw !important;
+                border: 2px solid black;
+                padding: 5px;
+                clear: both;
+                min-width: 360px;
+            }
+
+            .poleGry {
+                text-align: center;
+                width: 95vw;
+                border: 2px solid black;
+                height: auto;
+                float: left;
+                position: relative;
+                min-width: 360px;
+            }
+
+            .plansza {
+                width: 70vw;
+                height: 70vw;
+                min-width: 252px;
+                min-height: 252px;
+            }
+
+            .pole {
+                width: 7vw;
+                height: 7vw;
+                min-width: 25.2px;
+                min-height: 25.2px;
+            }
+
+            #poleGracza {
+                border-radius: 25px 25px 0 0;
+            }
+
+            #poleKomputera {
+                border-radius: 0 0 25px 25px;
+                margin-bottom: 5px;
+            }
+
+            #losujDlaGracza {
+                top: 10px;
+            }
+
+            #usunGracza {
+                top: 10px;
+            }
+
+        }
+
+
+        @keyframes migotanie {
+            0% {
+                color: green;
+                transform: scale(1, 1);
+                border-radius: 0;
+            }
+
+            50% {
+                color: red;
+                transform: scale(1.1, 1.1);
+                border-radius: 5px;
+            }
+
+            100% {
+                color: blue;
+                transform: scale(1.2, 1.2);
+                border-radius: 10px;
+            }
+        }
+
+        .migotanie {
+            animation: migotanie 0.5s linear 0s infinite alternate;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            //#region zmienne kolorystyczne 
+            //zmienne przechowują kolory używane jako tła w js - ! zmiana koloru tu może też wymagać zmiany koloru w <style> !
+            //plansza do gry
+            const Col_Plansza_puste = "white" //puste pola na planszy
+            const Col_Plansza_ramki = "#2155f2" //puste pola dookoła statków (jeśli ustawione że widoczne)
+            const Col_Plansza_statek = "black" //statek na planszy
+            const Img_Plansza_pudlo = "url('./img/dot.png')" //obrazek przy nietrafieniu
+            const Img_Plansza_trafiony = "url('./img/X.png')" //obrazek przy trafieniu
+            const Img_Plansza_zatopiony = "url('./img/blueX.png')" //obrazek przy zatopieniu
+            const Col_Plansza_podswietlenie_ok = "green" //podswietlenie planszy gdy jest miejsce na statek
+            const Col_Plansza_podswietlenie_notOk = "red" //podswietlenie planszy gdy nie ma miejsca na statek
+            //dock statki
+            const Col_Dock_inactive = "white"  //kolor nieaktywnego statku w docku
+            const Col_Dock_active = "blue"  //kolor aktywnego statku w docku
+            const Col_Dock_hover = "green"  //kolor najechanego statku w docku
+            //dock przycisk ramki
+            const Col_Dock_Button_ramki_active = "green" //kolor przycisku Pokaż ramki gdy aktywny
+            const Col_Dock_Button_ramki_inactive = "white" //kolor przycisku Pokaż ramki gdy nieaktywny
+            //dock przycisk start
+            const Col_Dock_Button_Start_active = "white" //kolor przycisku Start gdy aktywny
+            const Col_Dock_Button_Start_activeTXT = "green" //kolor textu na przycisku Start gdy aktywny
+            const Col_Dock_Button_Start_inactive = "white" //kolor przycisku Start gdy nieaktywny
+            const Col_Dock_Button_Start_inactiveTXT = "black" //kolor textu na przycisku Start gdy nieaktywny
+            //control panel
+            const Col_CP_active = "#6AFF4E" //kolor aktywnego przycisku w control panel
+            const Col_CP_inactive = "white" //kolor nieaktywnego przycisku w control panel
+            const Col_CP_disabled = "red" //kolor wyloczanego przycisku w control panel
+            //infoUpdate - automatyczna konwersja scieżek do obrazkow na potrzeby infoUpdate
+            const Img_pudlo = Img_Plansza_pudlo.slice(4, Img_Plansza_pudlo.length - 1) //obrazek przy nietrafieniu
+            const Img_trafiony = Img_Plansza_trafiony.slice(4, Img_Plansza_trafiony.length - 1) //obrazek przy trafieniu
+            const Img_zatopiony = Img_Plansza_zatopiony.slice(4, Img_Plansza_zatopiony.length - 1) //obrazek przy zatopieniu
+            //#endregion
+
+            //#region funkcje
+            function losuj(pomniejsz) {
+                //losuje liczbe od 1 do 10-pomniejsz
+                var losowa = parseInt((Math.random() * (10 - pomniejsz)) + 1)
+                return losowa;
+            }
+            function pionPoziom() {
+                //zwaraca losowo 0 lub 1
+                return parseInt((Math.random() * 2) + 0);
+            }
+            function rysujRamki(tablica) {
+                //naprawia ramki uszkodzone przez wstawianie elementów
+                //poziome
+                for (var i = 0; i <= 11; i++) {
+                    tablica[0][i] = 9;
+                }
+                for (var i = 0; i <= 11; i++) {
+                    tablica[11][i] = 9;
+                }
+                //pionowe
+                for (var i = 0; i <= 11; i++) {
+                    tablica[i][0] = 9;
+                }
+                for (var i = 0; i <= 11; i++) {
+                    tablica[i][11] = 9;
+                }
+            }
+            function generujPlansze(planszaGeneracji, tablicaGeneracji, nazwa) {
+                //generuje tablicę planszy oraz plansze w wybranym divie, pola oznacza schematem nazwax0y0
+                //przyjmuje: plansza = document.getElementbyID("wybrany div") | tablica = [] | nazwa= "nazwaid"
+                //tablica
+                for (var x = 0; x <= 14; x++) {
+                    tablicaGeneracji[x] = []
+                    for (var y = 0; y <= 14; y++) {
+                        tablicaGeneracji[x][y] = 9
+                    }
+                }
+                for (var x = 0; x <= 11; x++) {
+                    for (var y = 0; y <= 11; y++) {
+                        tablicaGeneracji[x][y] = 0
+                    }
+                }
+                //plansza
+                for (var i = 1; i <= 10; i++) {
+                    for (var j = 1; j <= 10; j++) {
+                        var element = document.createElement("div")
+                        element.className = "pole"
+                        element.id = nazwa + "x" + i + "y" + j
+                        planszaGeneracji.appendChild(element);
+                    }
+
+                }
+                rysujRamki(tablicaGeneracji)
+            }
+            function render(tabelaRenderu, nazwa, conf) {
+                //funkcja renderująca zmiany w tablicy - ustawia kolory na planszy wg danych w tablicy |jesli atrybut conf == "hidden", to nie pokazuje pozycji statkow
+                //oznaczenia:
+                // 0 - puste miejsce w którym mozna postawić statek
+                // 1 - miejsce na którym stoi statek
+                // 2 - puste miejsce dookoła statku w którym nie może stać inny statek
+                // 4 - zatopienie
+                // 5 - zpudłowanie
+                // 6 - trafienie
+                // 7 - zpudłowanie (ale trafienie w ramke)
+                // 8 - nie oznacza nic, ale jest wykorzystywane przez funkcje porawiającą 2-ki
+                // 9 - ramka dookoła planszy
+                for (var i = 1; i <= 10; i++) {
+                    for (var j = 1; j <= 10; j++) {
+                        var bloczek = document.getElementById(nazwa + "x" + i + "y" + j);
+                        bloczek.style.backgroundSize = "100%"
+                        if (tabelaRenderu[i][j] == 0 || tabelaRenderu[i][j] == 5) {
+                            bloczek.style.backgroundColor = Col_Plansza_puste
+                        }
+                        if (tabelaRenderu[i][j] == 2 || tabelaRenderu[i][j] == 7) {
+                            if (conf == "hidden") { //z tym atrybutem funkcja nie renderuje statków
+                                bloczek.style.backgroundColor = Col_Plansza_puste
+                            }
+                            else {
+                                if (conf == "borders") {
+                                    bloczek.style.backgroundColor = Col_Plansza_ramki //renderuj ramki
+                                }
+                                else {
+                                    bloczek.style.backgroundColor = Col_Plansza_puste  //nie renderuj ramek
+                                }
+
+
+                            }
+
+                        }
+                        if (tabelaRenderu[i][j] == 1 || tabelaRenderu[i][j] == 6 || tabelaRenderu[i][j] == 4) {
+                            if (conf == "hidden") { //z tym atrybutem funkcja nie renderuje statków
+                                bloczek.style.backgroundColor = Col_Plansza_puste
+                            }
+                            else {
+                                bloczek.style.backgroundColor = Col_Plansza_statek
+                            }
+
+                        }
+                        // poniżej renderowane sa obrazki (trafienia)
+                        if (tabelaRenderu[i][j] == 5 || tabelaRenderu[i][j] == 7) { //nietrafiony - ramka lub puste
+                            bloczek.style.backgroundImage = Img_Plansza_pudlo
+                        }
+                        if (tabelaRenderu[i][j] == 6) { //trafiony
+                            bloczek.style.backgroundImage = Img_Plansza_trafiony
+                        }
+                        if (tabelaRenderu[i][j] == 4) { //zatopiony
+                            bloczek.style.backgroundImage = Img_Plansza_zatopiony
+                        }
+                        if (tabelaRenderu[i][j] == 2 || tabelaRenderu[i][j] == 7) { //renderowanie ramek przy statkach w trakcie gry
+                            if (globalShowBorders) {
+                                bloczek.style.backgroundColor = Col_Plansza_ramki
+                            }
+                        }
+                    }
+                }
+            }
+            function umiesc(tablicaUmieszczenia, poz1, poz2, dl, kier) {
+                //umieszcza statek w wybranym miejscu w wybranej tablicy
+                //umieszczanie ramek dookoła statku
+                for (var i = -1; i < dl + 1; i++) {
+                    if (kier == 0) {
+                        tablicaUmieszczenia[poz1 - 1][poz2 + i] = 2;
+                        tablicaUmieszczenia[poz1 + 1][poz2 + i] = 2;
+                        tablicaUmieszczenia[poz1][poz2 + i] = 2;
+                    }
+                    else {
+                        tablicaUmieszczenia[poz1 + i][poz2 - 1] = 2;
+                        tablicaUmieszczenia[poz1 + i][poz2 + 1] = 2;
+                        tablicaUmieszczenia[poz1 + i][poz2] = 2;
+                    }
+                }
+                //umieszczanie statki
+                for (var i = 0; i < dl; i++) {
+                    if (kier == 0) { //poziom
+                        tablicaUmieszczenia[poz1][poz2 + i] = 1;
+                    }
+                    else { //pion
+                        tablicaUmieszczenia[poz1 + i][poz2] = 1;
+                    }
+                }
+                rysujRamki(tablicaUmieszczenia);
+            }
+            function sprawdzCzyWolne(tablicaSprawdzania, poz1, poz2, dl, kier) {
+                //sprawdza czy w danym miejscu można umieścić statek
+                czyZajete = false;
+                if (kier == 0) {
+                    for (var q = 0; q < 3; q++) {
+                        for (var w = 0; w < dl + 2; w++) {
+                            if (tablicaSprawdzania[poz1 - 1 + q][poz2 - 1 + w] == 1) {
+                                czyZajete = true;
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (var q = 0; q < dl + 2; q++) {
+                        for (var w = 0; w < 3; w++) {
+                            if (tablicaSprawdzania[poz1 - 1 + q][poz2 - 1 + w] == 1) {
+                                czyZajete = true;
+                            }
+                        }
+                    }
+                }
+                if (czyZajete) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            function rozmiescLosowo(tabelaLosowania) {
+                //umieszcza wszystkie statki na losowych pozycjach w tablicy
+                //losowanie pozycji 4
+                var kierunek = pionPoziom()
+                if (kierunek == 0) {
+                    var pozX = losuj(0)
+                    var pozY = losuj(3)
+                }
+                else {
+                    var pozX = losuj(3)
+                    var pozY = losuj(0)
+                }
+                umiesc(tabelaLosowania, pozX, pozY, 4, kierunek)
+                //losowanie poz 3
+                for (let i = 0; i < 2; i++) {
+                    var pozX;
+                    var pozY;
+                    var kierunek;
+                    var jestWolne = false
+                    while (jestWolne == false) {
+                        var kierunek = pionPoziom()
+                        if (kierunek == 0) {
+                            var pozX = losuj(0)
+                            var pozY = losuj(2)
+                        }
+                        else {
+                            var pozX = losuj(2)
+                            var pozY = losuj(0)
+                        }
+                        jestWolne = sprawdzCzyWolne(tabelaLosowania, pozX, pozY, 3, kierunek);
+                    }
+                    umiesc(tabelaLosowania, pozX, pozY, 3, kierunek);
+                }
+                // losowanie poz 2
+                for (let i = 0; i < 3; i++) {
+                    var pozX;
+                    var pozY;
+                    var kierunek;
+                    var jestWolne = false
+                    while (jestWolne == false) {
+                        var kierunek = pionPoziom()
+                        if (kierunek == 0) {
+                            var pozX = losuj(0)
+                            var pozY = losuj(1)
+                        }
+                        else {
+                            var pozX = losuj(1)
+                            var pozY = losuj(0)
+                        }
+                        jestWolne = sprawdzCzyWolne(tabelaLosowania, pozX, pozY, 2, kierunek);
+                    }
+                    umiesc(tabelaLosowania, pozX, pozY, 2, kierunek);
+                }
+                // losowanie poz 1
+                for (let i = 0; i < 4; i++) {
+                    var pozX;
+                    var pozY;
+                    var jestWolne = false
+                    while (jestWolne == false) {
+                        var pozX = losuj(0)
+                        var pozY = losuj(0)
+                        jestWolne = sprawdzCzyWolne(tabelaLosowania, pozX, pozY, 1, kierunek);
+                    }
+                    umiesc(tabelaLosowania, pozX, pozY, 1, 1);
+                }
+            } //koniec funkcji
+            function zresetujPodswietlanie(nazwa) {
+                //funkcja usuwa wszystkie listenery z danej planszy
+                for (let i = 1; i <= 10; i++) {
+                    for (let j = 1; j <= 10; j++) {
+                        var element = document.getElementById(nazwa + "x" + i + "y" + j)
+                        element.outerHTML = element.outerHTML; //usunięcie bezimmiennego listenera
+                    }
+                }
+                //ponowna aktywacja klikniec
+                aktywujPlansze()
+            }
+            function podswietlanie(x, y, tablica, nazwa, kier, dl) {
+                //odpowiada za odpowiednie oswietlanie konkretnych pól, jest wywoływana automatycznie przez podswietlajPlansze()
+                var m = 0;
+                var n = 0;
+                if (kier == 1) {  //moduł sprawdzania przesunieć przy krawedziach
+                    if (x + dl == 12) {
+                        m = 1;
+                    }
+                    if (x + dl == 13) {
+                        m = 2;
+                    }
+                    if (x + dl == 14) {
+                        m = 3;
+                    }
+                }
+                else {
+                    if (y + dl == 12) {
+                        n = 1;
+                    }
+                    if (y + dl == 13) {
+                        n = 2;
+                    }
+                    if (y + dl == 14) {
+                        n = 3;
+                    }
+                }
+                for (let i = 0; i < dl; i++) {
+                    if (kier == 0) {
+                        var wolne = true;
+                        for (let z = 0; z < dl; z++) { //sprawdzanie koloru
+                            if (tablica[x][y + z - n] != 0 && tablica[x][y + z - n] != 9) {
+                                wolne = false;
+                            }
+                        }
+                        var druga = y + i - n;
+                        if (wolne) {
+                            document.getElementById(nazwa + "x" + x + "y" + druga).style.backgroundColor = Col_Plansza_podswietlenie_ok;
+                        }
+                        else {
+                            document.getElementById(nazwa + "x" + x + "y" + druga).style.backgroundColor = Col_Plansza_podswietlenie_notOk;
+                        }
+
+                    }
+                    else {
+                        var wolne = true;
+                        for (let z = 0; z < dl; z++) { //sprawdzanie koloru
+                            if (tablica[x + z - m][y] != 0 && tablica[x + z - m][y] != 9) {
+                                wolne = false;
+                            }
+                        }
+                        var druga = x + i - m;
+                        if (wolne) {
+                            document.getElementById(nazwa + "x" + druga + "y" + y).style.backgroundColor = Col_Plansza_podswietlenie_ok;
+                        }
+                        else {
+                            document.getElementById(nazwa + "x" + druga + "y" + y).style.backgroundColor = Col_Plansza_podswietlenie_notOk;
+                        }
+
+                    }
+                }
+
+            }
+            function podswietlajPlansze(tablica, nazwa, dl, kier) {
+                //zresetowanie podswietlenia
+                zresetujPodswietlanie(nazwa)
+                //odswieżenie planszy
+                render(tablica, nazwa, conf)
+                //aktywacja podswietlenia
+                for (let i = 1; i <= 10; i++) {
+                    for (let j = 1; j <= 10; j++) {
+                        var element = document.getElementById(nazwa + "x" + i + "y" + j)
+                        element.addEventListener("mouseover", function () { podswietlanie(i, j, tablica, nazwa, kier, dl) })
+                        element.addEventListener("mouseleave", function () { render(tablica, nazwa, conf) })
+                    }
+                }
+
+            }
+            function aktywujStatek(id) {
+                //odpowiada za wybor aktywnego statku i wpisanie jego danych do globalnych zmiennych
+                statek = document.getElementById(id);
+                if (id == globalStatek) { //ponowne klikniecie na ten sam statek dezaktywuje go, oraz wyłącza podświetlanie
+                    statek.style.backgroundColor = Col_Dock_inactive
+                    globalStatek = 0;
+                    zresetujPodswietlanie("gracz")
+                }
+                else {
+                    var aktywny = globalStatek
+                    if (aktywny != undefined && aktywny != 0) { //sprawdza czy jest aktywny jakiś inny statek, jesli tak, to go dezaktywuje
+                        dezaktywuj = document.getElementById(aktywny)
+                        dezaktywuj.style.backgroundColor = Col_Dock_inactive
+                    }
+                    statek.style.backgroundColor = Col_Dock_active
+                    globalStatek = id
+                    globalDl = parseInt(globalStatek[2])
+                    podswietlajPlansze(tablicaGracza, "gracz", globalDl, globalKier)
+                }
+
+            }
+            function generujDock() {
+                //generuje statki po lewej i ustawia na nich listenery wyboru aktywnego
+                var dock = document.getElementById("dockNaStatki")
+                for (let z = 4; z >= 1; z--) {
+                    for (let x = 0; x < 5 - z; x++) {
+                        var a = document.createElement("div")
+                        a.id = "st" + z + x
+                        for (let i = 0; i < z; i++) {
+                            var pole = document.createElement("div")
+                            pole.className = "pole"
+                            a.appendChild(pole)
+                        }
+                        a.addEventListener("click", function () { //przy kliknieciu statek poda swoje dane funkcji aktywujacej
+                            globalKier = 0; //ustawia kierunek na poziomy
+                            document.getElementById("zmianaKierunku").innerHTML = "poziom"  //ustawia przycisk zmiany kierunku
+                            aktywujStatek(event.currentTarget.id);
+                        })
+                        //moduł podswietlania statku
+                        a.addEventListener("mouseenter", function () {
+                            if (event.currentTarget.id != globalStatek) {
+                                event.currentTarget.style.backgroundColor = Col_Dock_hover
+                            }
+                        })
+                        a.addEventListener("mouseleave", function () {
+                            if (event.currentTarget.id == globalStatek) { //sprawdza jakie tło przywrócić
+                                event.currentTarget.style.backgroundColor = Col_Dock_active
+                            }
+                            else {
+                                event.currentTarget.style.backgroundColor = Col_Dock_inactive
+                            }
+                        })
+                        dock.appendChild(a)
+                    }
+                }
+            }
+            function aktywujPlansze() {
+                //wykrywanie left-clicka, ustawienie elementu na planszy
+                for (let i = 1; i <= 10; i++) {
+                    for (let j = 1; j <= 10; j++) {
+                        var element = document.getElementById("gracz" + "x" + i + "y" + j)
+                        element.addEventListener("click", function () {
+                            if (globalStatek == 0) {
+                                if (tablicaGracza[i][j] == 1) {
+                                    //---------aktywacja usuwania-------------//
+                                    var daneStatku = znajdzStatekNaPlanszy(tablicaGracza, i, j)
+                                    wymaz(tablicaGracza, daneStatku[0], daneStatku[1], daneStatku[2], daneStatku[3]);
+                                    render(tablicaGracza, "gracz", conf);
+                                    var przywroc = sprawdzWolnyNumerRozmiaruStatku(daneStatku[2])
+                                    document.getElementById(przywroc).style.display = "block"
+                                    if (window.getComputedStyle(document.getElementById("dockNaStatki")).getPropertyValue("width").slice(0, 3) > 120) { //jesli na wersji mobilnej
+                                        document.getElementById(przywroc).style.display = "inline-flex"
+                                    }
+                                    globalKier = daneStatku[3] // ustawia podświetlnie zgodne z kieruniem statku
+                                    if (globalKier == 0) { //ustawia napis na przycisku zmiany kierunku zgodnie z kierunkiem
+                                        document.getElementById("zmianaKierunku").innerHTML = "poziom"
+                                    }
+                                    else {
+                                        document.getElementById("zmianaKierunku").innerHTML = "pion"
+                                    }
+                                    aktywujStatek(przywroc)
+                                    //wywołanie funkcji startCondition()-------
+                                    startCondition();
+                                }
+                                else {
+                                    window.alert("Nie wybrano żadnego statku");
+                                }
+                            }
+                            else {
+                                var n = 0;
+                                var m = 0;
+                                if (globalKier == 0) {
+                                    //gdy statek nie zmiesci sie na planszy jest przesuwany w lewo
+                                    if (j + globalDl == 12) {
+                                        m = 1;
+                                    }
+                                    if (j + globalDl == 13) {
+                                        m = 2;
+                                    }
+                                    if (j + globalDl == 14) {
+                                        m = 3;
+                                    }
+                                }
+                                else {
+                                    //gdy statek nie zmiesci sie na planszy jest przesuwany w górę
+                                    if (i + globalDl == 12) {
+                                        n = 1;
+                                    }
+                                    if (i + globalDl == 13) {
+                                        n = 2;
+                                    }
+                                    if (i + globalDl == 14) {
+                                        n = 3;
+                                    }
+                                }
+                                var wolne = sprawdzCzyWolne(tablicaGracza, i - n, j - m, globalDl, globalKier)
+                                if (wolne) {
+                                    umiesc(tablicaGracza, i - n, j - m, globalDl, globalKier)
+                                    render(tablicaGracza, "gracz", conf)
+                                    document.getElementById(globalStatek).style.display = "none"
+                                    globalStatek = 0;
+                                    zresetujPodswietlanie("gracz")
+                                    //wywołanie funkcji startCondition()-------
+                                    startCondition();
+                                }
+                                else {
+                                    window.alert("To miejsce jest zajęte. Staki muszą mieć co najmniej jedno pole odstępu")
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+            function generujSwitchRamki() {
+                //funkcja odpowiedzialna za działanie przycisku "Pokaż ramki"
+                var dock = document.getElementById("dockNaStatki")
+                var guzik = document.createElement("div")
+                guzik.id = "pokazRamki"
+                guzik.innerText = "Pokaż ramki"
+                guzik.addEventListener("click", function () {
+                    if (conf == "default") {
+                        guzik.style.backgroundColor = Col_Plansza_ramki
+                        conf = "borders"
+                        render(tablicaGracza, "gracz", conf)
+                    }
+                    else {
+                        guzik.style.backgroundColor = Col_Dock_Button_ramki_inactive
+                        conf = "default"
+                        render(tablicaGracza, "gracz", conf)
+                    }
+                })
+                dock.appendChild(guzik)
+            }
+            function znajdzStatekNaPlanszy(tablica, x, y) {
+                //funkcja przyjmuje tablice x,y,  a zwraca tablice [x,y,dl,kier]
+                if (tablica[x][y] != 1 && tablica[x][y] != 6 && tablica[x][y] != 4) {
+                    window.alert("error")
+                }
+                else {
+                    x = parseInt(x)
+                    y = parseInt(y)
+                    //sprawdzenie ciągłości w 4 kierunkach
+                    var lewo = 0;
+                    var prawo = 0;
+                    var gora = 0;
+                    var dol = 0;
+                    var zatopiony = true;
+                    for (let i = 1; i > 0; i++) {
+                        if (tablica[x][y - i] == 1) {
+                            lewo++;
+                            zatopiony = false;
+                        }
+                        else {
+                            if (tablica[x][y - i] == 6 || tablica[x][y - i] == 4) {
+                                lewo++;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                    }
+                    for (let i = 1; i > 0; i++) {
+                        if (tablica[x][y + i] == 1) {
+                            prawo++;
+                            zatopiony = false;
+                        }
+                        else {
+                            if (tablica[x][y + i] == 6 || tablica[x][y + i] == 4) {
+                                prawo++;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                    }
+                    for (let i = 1; i > 0; i++) {
+                        if (tablica[x + i][y] == 1) {
+                            dol++;
+                            zatopiony = false;
+                        }
+                        else {
+                            if (tablica[x + i][y] == 6 || tablica[x + i][y] == 4) {
+                                dol++;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                    }
+                    for (let i = 1; i > 0; i++) {
+                        if (tablica[x - i][y] == 1) {
+                            gora++;
+                            zatopiony = false;
+                        }
+                        else {
+                            if (tablica[x - i][y] == 6 || tablica[x - i][y] == 4) {
+                                gora++
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                    }
+
+                    //ustalenie kierunku
+                    var kierunek
+                    if (gora == 0 && dol == 0) {
+                        kierunek = 0;
+                    }
+                    if (lewo == 0 && prawo == 0) {
+                        kierunek = 1;
+                    }
+
+                    //ustalenie wspł początku
+                    var zwortneX = x - gora;
+                    var zwortneY = y - lewo;
+
+                    //ustalenie dl
+                    var dl = 1 + lewo + prawo + gora + dol;
+
+                    //zwrot danych jako tablica
+                    return [zwortneX, zwortneY, dl, kierunek, zatopiony];
+
+                }
+            }
+            function wymaz(tablica, poz1, poz2, dl, kier) {
+                //wymazuje statek z danego miejsca, potem uruchamia funkcję naprawiającą ramki pozostałych statków
+                for (var i = -1; i < dl + 1; i++) {
+                    if (kier == 0) {
+                        tablica[poz1 - 1][poz2 + i] = 0;
+                        tablica[poz1 + 1][poz2 + i] = 0;
+                        tablica[poz1][poz2 + i] = 0;
+                    }
+                    else {
+                        tablica[poz1 + i][poz2 - 1] = 0;
+                        tablica[poz1 + i][poz2 + 1] = 0;
+                        tablica[poz1 + i][poz2] = 0;
+                    }
+                }
+                for (var i = 0; i < dl; i++) {
+                    if (kier == 0) { //poziom
+                        tablica[poz1][poz2 + i] = 0;
+                    }
+                    else { //pion
+                        tablica[poz1 + i][poz2] = 0;
+                    }
+                }
+                naprawRamkiStakow(tablica);
+                rysujRamki(tablica);
+            }
+            function naprawRamkiStakow(tablica) {
+                //funckja kolejno bierze każdy statek i wstawia go podobnie jako 8 + ramka z 2, a na koniec zamiania 8 na 1
+                //efektem jest naprawienie wyrw w ramkach statkow spowodowanych przez funkcje wymaz
+                for (let x = 0; x <= 11; x++) {
+                    for (let y = 0; y <= 11; y++) {
+                        if (tablica[x][y] == 1) {
+                            var dane = znajdzStatekNaPlanszy(tablica, x, y)
+                            for (var i = -1; i < dane[2] + 1; i++) {
+                                if (dane[3] == 0) {
+                                    tablica[dane[0] - 1][dane[1] + i] = 2;
+                                    tablica[dane[0] + 1][dane[1] + i] = 2;
+                                    tablica[dane[0]][dane[1] + i] = 2;
+                                }
+                                else {
+                                    tablica[dane[0] + i][dane[1] - 1] = 2;
+                                    tablica[dane[0] + i][dane[1] + 1] = 2;
+                                    tablica[dane[0] + i][dane[1]] = 2;
+                                }
+                            }
+                            //umieszczanie statki
+                            for (var i = 0; i < dane[2]; i++) {
+                                if (dane[3] == 0) { //poziom
+                                    tablica[dane[0]][dane[1] + i] = 8;
+                                }
+                                else { //pion
+                                    tablica[dane[0] + i][dane[1]] = 8;
+                                }
+                            }
+                            rysujRamki(tablica);
+                        }
+                    }
+                }
+                for (let x = 0; x <= 11; x++) {
+                    for (let y = 0; y <= 11; y++) {
+                        if (tablica[x][y] == 8) {
+                            tablica[x][y] = 1
+                        }
+                    }
+                }
+            }
+            function sprawdzWolnyNumerRozmiaruStatku(rozmiar) {
+                //funckja przechodzi po statkach i sprawdza ktory mozna przywrocic
+                if (rozmiar == 4) {
+                    if (document.getElementById("st40").style.display == "none") {
+                        return "st40"
+                    }
+                    else {
+                        return 0
+                    }
+                }
+                if (rozmiar == 3) {
+                    if (document.getElementById("st30").style.display == "none") {
+                        return "st30"
+                    }
+                    if (document.getElementById("st31").style.display == "none") {
+                        return "st31"
+                    }
+                    else {
+                        return 0
+                    }
+                }
+                if (rozmiar == 2) {
+                    if (document.getElementById("st20").style.display == "none") {
+                        return "st20"
+                    }
+                    if (document.getElementById("st21").style.display == "none") {
+                        return "st21"
+                    }
+                    if (document.getElementById("st22").style.display == "none") {
+                        return "st22"
+                    }
+                    else {
+                        return 0
+                    }
+                }
+                if (rozmiar == 1) {
+                    if (document.getElementById("st10").style.display == "none") {
+                        return "st10"
+                    }
+                    if (document.getElementById("st11").style.display == "none") {
+                        return "st11"
+                    }
+                    if (document.getElementById("st12").style.display == "none") {
+                        return "st12"
+                    }
+                    if (document.getElementById("st13").style.display == "none") {
+                        return "st13"
+                    }
+                    else {
+                        return 0
+                    }
+                }
+            }
+            function planszaOnRightClick() {
+                //funkcja odpowiada właczenie listenerów na planszygracza odpowiadających za zmianę kierunku przy left-clicku
+                event.preventDefault() //wyłączenie domyslnego efektu right-clicka
+                //podswietlajPlansze(tablicaGracza, "gracz", globalDl, globalKier, false)
+                if (globalKier == 0) {
+                    globalKier = 1;
+                }
+                else {
+                    globalKier = 0;
+                }
+                if (globalStatek != 0) { //plansza zacznie sie podświetlać tylko jesli jest aktywny jakiś statek
+                    podswietlajPlansze(tablicaGracza, "gracz", globalDl, globalKier)
+                }
+            }
+            function startCondition() {
+                //funkcja startu
+                var liczbaStatkow = 0;
+                for (var x = 0; x <= 11; x++) {
+                    for (var y = 0; y <= 11; y++) {
+                        if (tablicaGracza[x][y] == 1) {
+                            liczbaStatkow++;
+                        }
+                    }
+                }
+                if (liczbaStatkow == 20) {
+                    document.getElementById("START").style.backgroundColor = Col_Dock_Button_Start_active;
+                    document.getElementById("START").style.color = Col_Dock_Button_Start_activeTXT;
+                    document.getElementById("START").className = "migotanie";
+                    return true;
+                }
+                else {
+                    document.getElementById("START").style.backgroundColor = Col_Dock_Button_Start_inactive;
+                    document.getElementById("START").style.color = Col_Dock_Button_Start_inactiveTXT;
+                    document.getElementById("START").className = "";
+                    return false;
+                }
+            }
+            function wykasujGraniceStatkow(tablica) {
+                //funkcja usuwa ramki przy starcie
+                for (var x = 0; x <= 11; x++) {
+                    for (var y = 0; y <= 11; y++) {
+                        if (tablica[x][y] == 2) {
+                            tablica[x][y] = 0;
+                        }
+                    }
+                }
+            }
+            function startOnClick() {
+                //funkcja odpowiada za działanie przycisku start
+                //opis elementów modułu startu jest w funckcji startCondition()
+                if (event.target.style.backgroundColor == Col_Dock_Button_Start_active) {
+                    console.log("START");
+                    planszaGracza.outerHTML = planszaGracza.outerHTML; //usuniecie listenerów z planszy gracza
+                    conf = "default" //usuniecie ramek dookola statkow
+                    document.getElementById("dockNaStatki").remove() // usunięcie docka
+                    document.getElementById("controlPanel").style.width = "700px"; //zmiana szerokosci control Panelu
+                    wykasujGraniceStatkow(tablicaGracza); //usuwanie dwójek z tablicy
+                    wykasujGraniceStatkow(tablicaKomputera); //usuwanie dwójek z tablicy
+                    render(tablicaGracza, "gracz", conf) //przerenderowanie tablicy
+                    infoUpdate(1); //aktualizacja bloku instrukcji
+                    document.getElementById("losujDlaGracza").remove(); //
+                    document.getElementById("usunGracza").remove(); //  ----> usuwanie przycisków z planszy gracza
+                    document.getElementById("zmianaKierunku").remove()//
+                    globalShowBorders = true; //włączenie ramek
+                    document.getElementById("showBorders").style.backgroundColor = Col_CP_active; //przełączenie przycisku ramek
+                    document.getElementById("all").style.width = "700px"; //zmiana szerokości bloku głównego
+                    document.getElementById("AImode").removeEventListener("click", AImodeOnClick); //zablokowanie zmiany AI
+                    document.getElementById("AImode").style.backgroundColor = Col_CP_disabled;
+                    alertPlanszyGracza()
+                    aktywujRozgrywke()
+                }
+                else {
+                    window.alert("Nie wszystkie statki zostały rozmieszczone")
+                }
+            }
+            function alertPlanszyGracza() {
+                for (var i = 1; i <= 10; i++) {
+                    for (var j = 1; j <= 10; j++) {
+                        document.getElementById("graczx" + i + "y" + j).addEventListener("click", function () {
+                            window.alert("Rozgrywka rozpoczęta! Klikaj w planszę komputera aby strzelać.")
+                        })
+                    }
+                }
+            }
+            function infoUpdate(x) {
+                //odpowiada za aktualizacje bloku instrukcji. liczby 0,1 ... odpowiadają za konkretne komunikaty, (-1) usuwa cały blok
+                var div = document.getElementById("info");
+                if (x == -1) {
+                    div.remove()
+                }
+                if (x == 0) {
+                    div.innerHTML = "<b>Przygotowanie do gry:</b><div class=text>Instrukcje rozstawiania statków:<ul><li>Kliknij statek umieszczony poza planszą aby go aktywować.</li><li>Kliknij na planszy aby umieścić aktywny statek w wybranym miejscu.</li><li>Kliknij prawym przyciskiem myszy aby obrócić aktywny statek.</li><li>Kliknij na aktywny statek poza planszą aby go dezaktywować.</li><li>Jeśli nie jest aktywny żaden statek kliknij statek na planszy aby go przemieścić</li></ul>Między statkami musi być co najmniej jedno pole odstępu.<br>Przycisk \"<u>Pokaż ramki</u>\" podświetli pola w których nie mozna umieścić statku.<br>Przycisk \"<u>Rozmieść losowo</u>\" rozmieści twoje pozostałe statki w losowych pozycjach.<br>Przycisk \"<u>Wyczyść planszę</u>\"  wyczyści twoją planszę ze statków.<br>Po rozmieszczeniu statków kliknij \"<u>START</u>\" aby rozpocząć grę.</div>"
+                }
+                if (x == 1) {
+                    div.style.width = "700px";
+                    div.innerHTML = "<b>Rozgrywka:</b><div class=text>Kliknij na planszę przeciwnika aby strzelic.<br>Po trafieniu możesz oddać kolejny strzał.<br>Zestrzel wszystkie statki przeciwnika aby wygrać.<br>Jeśli przeciwnik zestrzeli wszystkie twoje statki to przegrywasz.<br><br>"
+                    if (globalAI_mode == 0) {
+                        div.innerHTML += "Twój przeciwnik bedzie strzelał w losowe pola (bez powtórzeń)"
+                    }
+                    if (globalAI_mode == 1) {
+                        div.innerHTML += "Twój przeciwnik bedzie strzelał w losowe pola (bez powtórzeń) oraz pomijał pola wokół zatopionych statków"
+                    }
+                    if (globalAI_mode == 2) {
+                        div.innerHTML += "Twój przeciwnik bedzie strzelał w losowe pola (bez powtórzeń) oraz pomijał pola wokół zatopionych statków. Po trafieniu będzie w tym i kolejnych ruchach starał się zatopić trafiony statek."
+                    }
+                    if (globalAI_mode == 3) {
+                        div.innerHTML += "Twój przeciwnik bedzie szukał losowego miejsca w którym mógłby potencjalnie znajdować się najwiekszy niezatopiony jeszcze przez niego statek. Po trafieniu będzie w tym i kolejnych ruchach starał się zatopić trafiony statek."
+                    }
+                    div.innerHTML += "<br><br>"
+                    div.innerHTML += "<img src=" + Img_pudlo + " class='infoImg'> - oznacza nietrafienie<br>"
+                    div.innerHTML += "<img src=" + Img_trafiony + " class='infoImg'> - oznacza trafienie<br>"
+                    div.innerHTML += "<img src=" + Img_zatopiony + " class='infoImg'> - oznacza zatopienie<br>"
+
+                    div.innerHTML += "</div>"
+                }
+                if (x == 2) {
+                    if (document.getElementById("dockNaStatki") == null) {
+                        div.style.width = "700px";
+                    }
+                    else {
+                        div.style.width = "830px";
+                    }
+                    div.innerHTML = "<b style=color:red>Funkcje dodatkowe</b><div class=text>Na górze pokazał się panel funkcji dodatkowych.<br>Kliknij dwukrotnie tutaj aby go schować.<br><u style=color:red>Zmiana ustawień w tym panelu może znacząco wpłynąć na balans rozgrywki.</u><ul>Opis przełączników panelu:<li><i>showEnemy</i> pozwala wyświetlić statki komputera</li><li><i>fastGame</i> pozwala komputerowi wykonywać ruchy natychmiastowo po ruchu gracza</li><li><i>AImode</i> pozwala zmienić zachowanie przeciwnika</li><li><i>extraMove</i> pozwala zmienić zasadę dodatkowego ruchu po trafieniu</li><li><i>showBorders</i> pozwala wyświetlać na planszy ramki dookoła zastrzelonych statków</li></ul></div>"
+                }
+            }
+            function losujDlaGraczaOnClick() {
+                // funkcja rozmieszczajaca wszystkie pozostale statki losowo dla gracza
+                while (startCondition() == false) {
+                    var dock = document.getElementById("dockNaStatki");
+                    var statek = 0;
+                    for (var index = 2; index <= 11; index++) {
+                        if (dock.children[index].style.display != "none") {
+                            statek = dock.children[index];
+                            break;
+                        }
+                    }
+                    if (statek == 0) {
+                        break
+                    }
+                    var statekDl = parseInt(statek.id.slice(2, 3))
+                    var pozX;
+                    var pozY;
+                    var kier;
+                    var nieznaleziono = true;
+                    for (var o = 0; o < 100; o++) {
+                        kier = pionPoziom();
+                        if (kier == 0) {
+                            pozX = losuj(0)
+                            pozY = losuj(statekDl - 1)
+                        }
+                        else {
+                            pozX = losuj(statekDl - 1)
+                            pozY = losuj(0)
+                        }
+                        if (sprawdzCzyWolne(tablicaGracza, pozX, pozY, statekDl, kier)) {
+                            nieznaleziono = false;
+                            break;
+                        }
+                    }
+                    if (nieznaleziono) {
+                        window.alert("nie ma miejsca w tablicy")
+                        break;
+                    }
+                    else {
+                        umiesc(tablicaGracza, pozX, pozY, statekDl, kier)
+                        render(tablicaGracza, "gracz", conf)
+                        statek.style.display = "none";
+                    }
+                }
+                if (globalStatek != 0) {
+                    aktywujStatek(globalStatek)
+                }
+            }
+            function addToControlPanel(name, funkcja, active) {
+                //funkcja dodaje element do kontol panelu, ustawia napis na name i przypisuje funkcje na "click"
+                var element = document.createElement("div");
+                element.className = "controlButton";
+                element.id = name;
+                element.innerHTML = name;
+                element.addEventListener("click", funkcja)
+                if (active) {
+                    element.style.backgroundColor = Col_CP_active
+                }
+                document.getElementById("controlPanel").appendChild(element)
+            }
+            function controlPanelOn() {
+                document.getElementById("info").addEventListener("dblclick", pokazControlPanel) //aktywacja listenera do pokazania panelu
+                if (showControlPanel) { //ustawienie widocznosci zaleznie od zmiennej
+                    document.getElementById("controlPanel").style.display = "block";
+                    if (document.getElementById("dockNaStatki") == null) {
+                        infoUpdate(1)
+                    }
+                    else {
+                        infoUpdate(0)
+                    }
+                }
+                else {
+                    document.getElementById("controlPanel").style.display = "none";
+                    infoUpdate(2)
+                }
+                //--dodawanie elementow--
+                //pokaz statki komputera
+                addToControlPanel("showEnemy", showEnemyOnClick, false)
+                //szybkagra
+                addToControlPanel("fastGame", fastGameOnClick, false)
+                //AImode
+                addToControlPanel("AImode", AImodeOnClick, false)
+                document.getElementById("AImode").innerHTML = "AImode_" + globalAI_mode;
+                //extraMove
+                addToControlPanel("extraMove", extraMoveonClick, true)
+                //showBorders
+                addToControlPanel("showBorders", showBordersOnClick, false)
+                //showAiTargeting
+                addToControlPanel("AiTargeting", showAiTargetingOnClick, false)
+            }
+            function showAiTargetingOnClick() {
+                if (globalShowAiTargeting && globalAI_mode == 4) {
+                    event.target.style.backgroundColor = Col_CP_inactive;
+                    globalShowAiTargeting = false;
+                    document.getElementById('aiTargeting').style.display = "none"
+                    moveBlockOnPositionFixed("aiTargeting", false)
+                }
+                else if (globalAI_mode == 4) {
+                    event.target.style.backgroundColor = Col_CP_active
+                    globalShowAiTargeting = true;
+                    document.getElementById('aiTargeting').style.display = "block"
+                    moveBlockOnPositionFixed("aiTargeting", true)
+                }
+            }
+            function showBordersOnClick() {
+                if (globalShowBorders) {
+                    event.target.style.backgroundColor = Col_CP_inactive;
+                    globalShowBorders = false;
+                }
+                else {
+                    event.target.style.backgroundColor = Col_CP_active
+                    globalShowBorders = true;
+                }
+                render(tablicaGracza, "gracz", conf);
+                render(tablicaKomputera, "komp", computerConf);
+            }
+            function extraMoveonClick() {
+                //wylacza dodatkowy ruch po trafieniu
+                if (globalExtraMove) {
+                    event.target.style.backgroundColor = Col_CP_inactive;
+                    globalExtraMove = false;
+                }
+                else {
+                    event.target.style.backgroundColor = Col_CP_active
+                    globalExtraMove = true;
+                }
+            }
+            function AImodeOnClick() {
+                //przestawia tryb ai
+                // 0 - strzela w losowe jeszcze nie sprawdzone pola
+                // 1 - strzela w losowe nie spardzone pole, ignoruje pola wokol zatopionych statkow
+                // 2 - strzela lewo-prawo-gora-dol do zatopienia i uwzglednia ramki po zatopieniu (osobna funkcja i globalna zmienna active)
+                // 3 - strzela szukajac najdluzszego pozostalego statku
+                // 4 - uzywa heatmapy aby okreslin najbardziej prawdopodobne polozenie statku
+                if (globalAI_mode == 0) {
+                    event.target.innerHTML = "AImode_1"
+                    globalAI_mode = 1
+                }
+                else if (globalAI_mode == 1) {
+                    event.target.innerHTML = "AImode_2"
+                    globalAI_mode = 2
+                }
+                else if (globalAI_mode == 2) {
+                    event.target.innerHTML = "AImode_3"
+                    globalAI_mode = 3
+                }
+                else if (globalAI_mode == 3) {
+                    event.target.innerHTML = "AImode_4"
+                    globalAI_mode = 4
+                }
+                else {
+                    event.target.innerHTML = "AImode_0"
+                    globalAI_mode = 0
+                }
+            }
+            function showEnemyOnClick() {
+                //umozliwia graczowi widzenie statkow przeciwnika
+                if (computerConf == "hidden") {
+                    event.target.style.backgroundColor = Col_CP_active
+                    computerConf = "default"
+                }
+                else {
+                    event.target.style.backgroundColor = Col_CP_inactive
+                    computerConf = "hidden"
+                }
+                render(tablicaKomputera, "komp", computerConf)
+            }
+            function fastGameOnClick() {
+                // dezaktywuje wymuszenie na graczu czekania na ruch komputera
+                if (globalFastGame) {
+                    globalFastGame = false;
+                    event.target.style.backgroundColor = Col_CP_inactive
+                }
+                else {
+                    globalFastGame = true;
+                    event.target.style.backgroundColor = Col_CP_active
+                }
+            }
+            function aktywujRozgrywke() {
+                //dezaktywacja listenerów
+                for (var x = 1; x <= 10; x++) {
+                    for (var y = 1; y <= 10; y++) {
+                        document.getElementById("komp" + "x" + x + "y" + y).removeEventListener("click", komputerOnClickError)
+                    }
+                }
+                //aktywuje listenery ruchu na planszy przeciwnika
+                for (var x = 1; x <= 10; x++) {
+                    for (var y = 1; y <= 10; y++) {
+                        document.getElementById("komp" + "x" + x + "y" + y).addEventListener("click", komputerOnClick)
+                    }
+                }
+            }
+            function spauzujRozgrywke() {
+                //dezaktywacja listenerów
+                for (var x = 1; x <= 10; x++) {
+                    for (var y = 1; y <= 10; y++) {
+                        document.getElementById("komp" + "x" + x + "y" + y).removeEventListener("click", komputerOnClick)
+                    }
+                }
+                //aktywuje listenery błędu na planszy przeciwnika
+                for (var x = 1; x <= 10; x++) {
+                    for (var y = 1; y <= 10; y++) {
+                        document.getElementById("komp" + "x" + x + "y" + y).addEventListener("click", komputerOnClickError)
+                    }
+                }
+            }
+            function komputerOnClickError() {
+                //to jest jako osobna funkcja bo bez jquerry nie da sie prosto usunac nienazwanych listenerow
+                window.alert("Poczekaj na swoją kolej")
+            }
+            function komputerOnClick() {
+                //odpowiada za kliknięcia na planszę uzytkownika
+                var id = event.target.id.toString();
+                var x = id.slice(5, 7);
+                var y = id.slice(-2)
+                //wycina z id współrzędne, oraz jeśli != 10 (jedyna mozliwa 2cyfrowa), to bierze jednocyfrowe
+                if (x != 10) x = id.slice(5, 6);
+                if (y != 10) y = id.slice(-1)
+                if (tablicaKomputera[x][y] < 3) {
+                    ruchGracza(x, y)
+                }
+            }
+            function czyWygrana(tablica) {
+                //sprawdza czy ktoś wygrał
+                var wygrana = true;
+                for (var x = 0; x <= 11; x++) {
+                    for (var y = 0; y <= 11; y++) {
+                        if (tablica[x][y] == 1) wygrana = false;
+                    }
+                }
+                return wygrana;
+            }
+            function zatopStatek(tablica, x, y, dl, kier) {
+                if (kier == 0) { //poziomy statek
+                    for (var i = -1; i < dl + 1; i++) { //ramki
+                        for (var j = -1; j < 2; j++) {
+                            if (tablica[x + j][y + i] == 0) {
+                                tablica[x + j][y + i] = 2;
+                            }
+                            if (tablica[x + j][y + i] == 5) {
+                                tablica[x + j][y + i] = 7;
+                            }
+                        }
+                    }
+                    //zatopienie
+                    for (var i = 0; i < dl; i++) {
+                        tablica[x][y + i] = 4;
+                    }
+                }
+                else {
+                    for (var i = -1; i < dl + 1; i++) { //ramki
+                        for (var j = -1; j < 2; j++) {
+                            if (tablica[x + i][y + j] == 0) {
+                                tablica[x + i][y + j] = 2;
+                            }
+                            if (tablica[x + i][y + j] == 5) {
+                                tablica[x + i][y + j] = 7;
+                            }
+                        }
+                    }
+                    //zatopienie
+                    for (var i = 0; i < dl; i++) {
+                        tablica[x + i][y] = 4;
+                    }
+                }
+            }
+            function ruchGracza(x, y) {
+                // wywoluje ruch gracza
+                console.log("gracz strzela w poz: " + x, y);
+                tablicaKomputera[x][y] += 5;
+                if (tablicaKomputera[x][y] == 6) {
+                    var info = znajdzStatekNaPlanszy(tablicaKomputera, x, y)
+                    if (info[4]) {
+                        zatopStatek(tablicaKomputera, info[0], info[1], info[2], info[3])
+                    }
+                }
+                render(tablicaKomputera, "komp", computerConf);
+                if (czyWygrana(tablicaKomputera)) {
+                    setTimeout(function () {
+                        window.alert("Wygrałeś")
+                        location.reload();
+                    }, 300)
+
+
+                }
+                else { //nie wygrana
+
+                    if (globalExtraMove) { //extra move active
+                        if (tablicaKomputera[x][y] == 6 || tablicaKomputera[x][y] == 4) { //trafienie/zatopienie nie włącza ruchu komputera
+                            console.log("dodatkowy ruch dla gracza");
+                        }
+                        else {
+                            if (globalFastGame == false) {
+                                spauzujRozgrywke();
+                                setTimeout(ruchKomputera, 1000);
+                            }
+                            else {
+                                ruchKomputera();
+                            }
+                        }
+                    }
+                    else {
+                        if (globalFastGame == false) {
+                            spauzujRozgrywke();
+                            setTimeout(ruchKomputera, 1000);
+                        }
+                        else {
+                            ruchKomputera();
+                        }
+                    }
+
+
+
+                }
+
+            }
+            function ruchKomputera() {
+                //wywoluje ruch komputera
+                var cel = AI()
+                var x = cel[0];
+                var y = cel[1];
+                console.log("komputer strzela w: " + x, y);
+                tablicaGracza[x][y] += 5;
+                if (tablicaGracza[x][y] == 6) {
+                    var info = znajdzStatekNaPlanszy(tablicaGracza, x, y)
+                    console.log("trafienie, zatopienie: ", info[4]);
+                    if (info[4]) {
+                        zatopStatek(tablicaGracza, info[0], info[1], info[2], info[3])
+                    }
+                }
+                render(tablicaGracza, "gracz", conf);
+                //hetmapDisplay
+                if (globalShowAiTargeting) {
+                    heatMapSweep();
+                    refreshHMdisplay();
+                }
+                if (czyWygrana(tablicaGracza)) {
+                    for (var x = 1; x <= 10; x++) {
+                        for (var y = 1; y <= 10; y++) {
+                            document.getElementById("komp" + "x" + x + "y" + y).removeEventListener("click", komputerOnClick)
+                        }
+                    }
+                    render(tablicaKomputera, "komp", "default")
+                    document.outerHTML = document.outerHTML;
+                    setTimeout(function () {
+                        window.alert("Przegrałeś")
+                    }, 300)
+                    //dezaktywacja listenerów
+
+                    return 0;
+                }
+                if (globalExtraMove) { //jesli dodatkowy ruch
+                    if (tablicaGracza[x][y] == 6 || tablicaGracza[x][y] == 4) { //czy trafienie
+                        if (globalFastGame) { //czy odpalic od razu (fast game)
+                            ruchKomputera()
+                        }
+                        else { //odpalic poczekajac
+                            setTimeout(ruchKomputera, 1000)
+                        }
+                    }
+                    else { //jesli pudlo
+                        aktywujRozgrywke();
+                    }
+                }
+                else { //jesli nie ma wloczonych extra ruchow
+                    aktywujRozgrywke();
+                }
+
+            }
+            function sweepTable() {
+                console.log("szukanie zaawansowane");
+                //funkcja odpowiada za sprawdzanie którego najdłuzszego statku musi szukać bot przy AI_3
+                if (AI_shipsleft[4] > 0) {
+                    var statek = advancedSearch(4)
+                }
+                else if (AI_shipsleft[3] > 0) {
+                    var statek = advancedSearch(3)
+                }
+                else if (AI_shipsleft[2] > 0) {
+                    var statek = advancedSearch(2)
+                }
+                else if (AI_shipsleft[1] > 0) {
+                    var statek = advancedSearch(1)
+                }
+                return statek
+            }
+            function advancedSearch(size) {
+                //odpowiada za szukanie miejsca na statek przez AI_3
+                var zajete = true;
+                while (zajete) { //losowanie pustego miejsca 
+                    x = losuj(0);
+                    y = losuj(0);
+                    var pion = true;
+                    var poziom = true;
+                    for (var q = 0; q < size; q++) {
+                        if (tablicaGracza[x][y + q] != 0 && tablicaGracza[x][y + q] != 1) poziom = false;
+                        if (tablicaGracza[x + q][y] != 0 && tablicaGracza[x + q][y] != 1) pion = false;
+                    }
+                    if (pion || poziom) {
+                        return [x, y]
+                    }
+                }
+            }
+            function AI() {
+                //odpowiada za wybranie celu przez bota
+                console.log("uruchomienie AI");
+                var x;
+                var y;
+                //mode 0 - very simple AI - strzela w losowe niestrzelone pole
+                //mode 1 - simple AI - strzela w losowe niestrzelone pole, omija pola wokol zatopionych statkow
+                if (globalAI_mode == 0 || globalAI_mode == 1) {
+                    var zajete = true;
+                    while (zajete) { //losowanie pustego miejsca 
+                        zajete = false;
+                        x = losuj(0);
+                        y = losuj(0);
+                        if (tablicaGracza[x][y] > 1 && globalAI_mode == 1) {
+                            zajete = true;
+                        }
+                        if (tablicaGracza[x][y] > 3 && globalAI_mode == 0) {
+                            zajete = true;
+                        }
+
+                    }
+                }
+                //mode 2 - intermediate AI - strzela w losowe niestrzelone pole, zatapia statki
+                //mode 3 - advanced AI - strzela w losowe pole w którym zmieści się najwiekszy niezatopiony statek, zatapia statki
+                //mode 4 - more advanced AI - uzywa heatmapy do szukania statku, zatapia statki
+                if (globalAI_mode == 2 || globalAI_mode == 3 || globalAI_mode == 4) {
+                    if (AI_lastShot == undefined) { //AI aktywuje sie po raz pierwszy
+                        console.log("aktywacja AI po raz pierwszy");
+                        if (globalAI_mode == 2) {
+                            console.log("szukanie losowe");
+                            var zajete = true;
+                            while (zajete) { //losowanie pustego miejsca 
+                                zajete = false;
+                                x = losuj(0);
+                                y = losuj(0);
+                                if (tablicaGracza[x][y] > 1) {
+                                    zajete = true;
+                                }
+                            }
+                        }
+                        if (globalAI_mode == 3) { //szukanie zaawansowane
+                            var xy = sweepTable()
+                            x = xy[0];
+                            y = xy[1];
+                        }
+                        if (globalAI_mode == 4) { //szukanie heatmapą
+                            var xy = heatMapSweep()
+                            x = xy[0];
+                            y = xy[1];
+                        }
+                        AI_lastShot = [x, y]
+                        return [x, y]
+                    }
+                    console.log("targetMode: " + AI_target_mode, "lastShot: " + AI_lastShot, "targets: " + AI_targets, "nextTarget: " + AI_nextTarget);
+                    if (tablicaGracza[AI_lastShot[0]][AI_lastShot[1]] == 4) { //poprzedni stral zatopil
+                        console.log("poprzedni strzał zatopił");
+                        //zerowanie listy celów i zapisywanie jakiego rozmiaru statek zatopiono
+                        AI_target_mode = 0;
+                        AI_targets = [];
+                        var tenZatopiony = znajdzStatekNaPlanszy(tablicaGracza, AI_lastShot[0], AI_lastShot[1])
+                        console.log(tenZatopiony);
+                        AI_shipsleft[tenZatopiony[2]]--;
+                        console.log("komputer zatopil statek ", tenZatopiony[2]);
+                    }
+                    if (tablicaGracza[AI_lastShot[0]][AI_lastShot[1]] == 6) { //poprzedni strzal trafienie ale nie zatopienie
+                        console.log("poprzedni strzał trafił");
+                        if (AI_target_mode == 0) {
+                            console.log("ustalanie listy celów");
+                            var t1 = AI_lastShot[0];
+                            var t2 = AI_lastShot[1];
+                            var losowanko = pionPoziom();
+                            // ustalanie kolejnych strzałów - komputer z góry ustala wszystkie strzały aż do zatopienia
+                            // -komputer wie czy trafi, czy nie - ale i tak oddaje strzały do pustych pól
+                            // -zmiania kierunek strzelania dopiero po nietrafieniu
+                            if (losowanko = 0) {
+                                //prawo
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1][t2 + i] == 0 || tablicaGracza[t1][t2 + i] == 1) {
+                                        AI_targets.push([t1, t2 + i]);
+                                        if (tablicaGracza[t1][t2 + i] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //lewo
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1][t2 - i] == 0 || tablicaGracza[t1][t2 - i] == 1) {
+                                        AI_targets.push([t1, t2 - i]);
+                                        if (tablicaGracza[t1][t2 - i] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //gora
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1 - i][t2] == 0 || tablicaGracza[t1 - i][t2] == 1) {
+                                        AI_targets.push([t1 - i, t2]);
+                                        if (tablicaGracza[t1 - i][t2] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //dol
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1 + i][t2] == 0 || tablicaGracza[t1 + i][t2] == 1) {
+                                        AI_targets.push([t1 + i, t2]);
+                                        if (tablicaGracza[t1 + i][t2] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                //gora
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1 - i][t2] == 0 || tablicaGracza[t1 - i][t2] == 1) {
+                                        AI_targets.push([t1 - i, t2]);
+                                        if (tablicaGracza[t1 - i][t2] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //dol
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1 + i][t2] == 0 || tablicaGracza[t1 + i][t2] == 1) {
+                                        AI_targets.push([t1 + i, t2]);
+                                        if (tablicaGracza[t1 + i][t2] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //prawo
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1][t2 + i] == 0 || tablicaGracza[t1][t2 + i] == 1) {
+                                        AI_targets.push([t1, t2 + i]);
+                                        if (tablicaGracza[t1][t2 + i] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                                //lewo
+                                for (var i = 1; ; i++) {
+                                    if (tablicaGracza[t1][t2 - i] == 0 || tablicaGracza[t1][t2 - i] == 1) {
+                                        AI_targets.push([t1, t2 - i]);
+                                        if (tablicaGracza[t1][t2 - i] == 0) {
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                            }
+                            AI_target_mode = 1;
+                            AI_nextTarget = 0;
+                            console.log(AI_targets);
+                        }
+                    }
+                    if (AI_target_mode == 1) { //hunt mode - komputer dokańcza trafiony statek
+                        console.log("dokanczanie statku");
+                        x = AI_targets[AI_nextTarget][0];
+                        y = AI_targets[AI_nextTarget][1];
+                        AI_nextTarget++;
+                    }
+                    if (AI_target_mode == 0) { //seeking mode - szukanie nowego celu
+                        console.log("szukanie nowego celu");
+                        //używanie różnych metod szukania w zalezności od trybu
+                        if (globalAI_mode == 2) {
+                            console.log("szukanie losowe");
+                            var zajete = true;
+                            while (zajete) { //losowanie pustego miejsca 
+                                zajete = false;
+                                x = losuj(0);
+                                y = losuj(0);
+                                if (tablicaGracza[x][y] > 1) {
+                                    zajete = true;
+                                }
+                            }
+                        }
+                        if (globalAI_mode == 3) {
+                            var xy = sweepTable() //szukanie zaawansowane
+                            x = xy[0];
+                            y = xy[1];
+                        }
+                        if (globalAI_mode == 4) {
+                            var xy = heatMapSweep() //szukanie heatmapą
+                            x = xy[0];
+                            y = xy[1];
+                        }
+
+                    }
+
+                }
+                //zwrot współrzędnych
+                AI_lastShot = [x, y]
+                return [x, y]
+            }
+            function pokazControlPanel() {
+                //odpowiada listener na info pokazujący/chowający controlPanel
+                if (event.altKey) { //tylko jesli alt był trzymany w trakcie doubleclicka
+                    if (showControlPanel) {
+                        document.getElementById("controlPanel").style.display = "none";
+                        if (document.getElementById("dockNaStatki") == null) {
+                            infoUpdate(1)
+                        }
+                        else {
+                            infoUpdate(0)
+                        }
+                        showControlPanel = false;
+                    }
+                    else {
+                        document.getElementById("controlPanel").style.display = "flex";
+                        infoUpdate(2)
+                        showControlPanel = true;
+                    }
+                }
+
+            }
+            function aktywujButttonZmianaKierunku() {
+                // przy dotknieciu ekranu aktywuje przycisk zmiany kierunku statku
+                var button = document.getElementById("zmianaKierunku")
+                button.style.display = "block"
+                button.addEventListener("click", function () {
+                    planszaOnRightClick()
+                    if (globalKier == 0) {
+                        document.getElementById("zmianaKierunku").innerHTML = "poziom"
+                    }
+                    else {
+                        document.getElementById("zmianaKierunku").innerHTML = "pion"
+                    }
+                })
+
+                window.removeEventListener('touchstart', aktywujButttonZmianaKierunku)
+            }
+            function usunGraczaOnClick() {
+                //odpowiada za przycisk wyczysc plansze
+                tablicaGracza = [];
+                planszaGracza.innerHTML = "";
+                generujPlansze(planszaGracza, tablicaGracza, "gracz");
+                var dock = document.getElementById("dockNaStatki")
+                dock.innerHTML = '<div id="START">START</div>';
+                conf = "default"
+                generujSwitchRamki();
+                generujDock();
+                document.getElementById("START").addEventListener("click", startOnClick)
+                aktywujStatek("st40")
+                if (globalStatek != "st40") {
+                    aktywujStatek("st40")
+                }
+
+                render(tablicaGracza, "gracz", conf)
+            }
+            function heatMapSweep() {
+                console.log("szukanie heatmapą");
+                //zwraca wspołrzedne strzalu dla komputera na podstawie heatmapy
+                resetHeatMap();
+                if (AI_shipsleft[4] > 0) {
+                    generateHeatMap(4)
+                }
+                else if (AI_shipsleft[3] > 0) {
+                    generateHeatMap(3)
+                }
+                else if (AI_shipsleft[2] > 0) {
+                    generateHeatMap(2)
+                }
+                else if (AI_shipsleft[1] > 0) {
+                    generateHeatMap(1)
+                }
+                var target = searchHeatMap()
+                return target;
+            }
+            function searchHeatMap() {
+                //szuka miejsca do strzalu w heatmapie
+                var max = 0;
+                for (var x = 1; x < 11; x++) {
+                    for (var y = 1; y < 11; y++) {
+                        if (AI_heatmap[x][y] > max) max = AI_heatmap[x][y]
+                    }
+                }
+                console.log("max heatmapy to: " + max);
+                var x;
+                var y;
+                while (true) {
+                    x = losuj(0);
+                    y = losuj(0);
+                    if (AI_heatmap[x][y] == max) break;
+                }
+                console.log(x, y);
+                return [x, y]
+            }
+            function generateHeatMap(dl) {
+                //tworzy heatmapę dla określonego rozmiaru statku
+                for (var x = 1; x < 11; x++) {
+                    for (var y = 1; y < 11; y++) {
+                        var zmiesciPo = true;
+                        var zmiesciPi = true;
+                        for (var z = 0; z < dl; z++) {
+                            if (tablicaGracza[x][y + z] != 0 && tablicaGracza[x][y + z] != 1) zmiesciPo = false;
+                            if (tablicaGracza[x + z][y] != 0 && tablicaGracza[x + z][y] != 1) zmiesciPi = false;
+                        }
+                        if (zmiesciPo) {
+                            for (var z = 0; z < dl; z++) {
+                                AI_heatmap[x][y + z] += 1
+                            }
+                        }
+                        if (zmiesciPi) {
+                            for (var z = 0; z < dl; z++) {
+                                AI_heatmap[x + z][y] += 1
+                            }
+                        }
+                    }
+                }
+                console.table(AI_heatmap);
+            }
+            function resetHeatMap() {
+                //czysci heatmapę
+                for (let z = 1; z < 11; z++) {
+                    AI_heatmap[z] = []
+                    for (let a = 1; a < 11; a++) {
+                        AI_heatmap[z][a] = 0;
+                    }
+                }
+            }
+            function generateHMdisplay() {
+                //generuje blok wyswietlający heatmapę
+                var plansza = document.getElementById('planszaHeatmap');
+                for (var i = 1; i <= 10; i++) {
+                    for (var j = 1; j <= 10; j++) {
+                        var element = document.createElement("div")
+                        element.className = "poleheatmap"
+                        element.id = "heatmap" + "x" + i + "y" + j
+                        plansza.appendChild(element);
+                    }
+                }
+            }
+            function refreshHMdisplay() {
+                //odpowiada za refresh bloku AI_targeting
+                //refresh tablicy
+                for (var i = 1; i <= 10; i++) {
+                    for (var j = 1; j <= 10; j++) {
+                        var bloczek = document.getElementById("heatmap" + "x" + i + "y" + j);
+                        bloczek.style.backgroundSize = "100%"
+                        var heat = AI_heatmap[i][j];
+                        var color = parseInt(255 / (heat + 1))
+                        bloczek.style.backgroundColor = "rgb(" + color + "," + color + "," + color + ")";
+                        // poniżej renderowane sa obrazki (trafienia)
+                        if (tablicaGracza[i][j] == 5 || tablicaGracza[i][j] == 7) { //nietrafiony - ramka lub puste
+                            bloczek.style.backgroundImage = Img_Plansza_pudlo
+                        }
+                        if (tablicaGracza[i][j] == 6) { //trafiony
+                            bloczek.style.backgroundImage = Img_Plansza_trafiony
+                        }
+                        if (tablicaGracza[i][j] == 4) { //zatopiony
+                            bloczek.style.backgroundImage = Img_Plansza_zatopiony
+                        }
+                        if (tablicaGracza[i][j] == 2 || tablicaGracza[i][j] == 7) { //renderowanie ramek przy statkach w trakcie gry
+                            if (globalShowBorders) {
+                                bloczek.style.backgroundColor = Col_Plansza_ramki
+                            }
+                        }
+                    }
+                }
+                //refresh danych
+                var info = document.getElementById("targetingInfoDisplay")
+                var szukanyStatek;
+                if (AI_shipsleft[4] > 0) {
+                    szukanyStatek = 4;
+                }
+                else if (AI_shipsleft[3] > 0) {
+                    szukanyStatek = 3;
+                }
+                else if (AI_shipsleft[2] > 0) {
+                    szukanyStatek = 2;
+                }
+                else if (AI_shipsleft[1] > 0) {
+                    szukanyStatek = 1;
+                }
+                info.innerHTML = "Szukany statek: " + szukanyStatek + "<br>";
+                info.innerHTML += "Pozostałe statki: "
+                if (AI_shipsleft[4] > 0) {
+                    info.innerHTML += AI_shipsleft[4] + "x [4] ,"
+                }
+                if (AI_shipsleft[3] > 0) {
+                    info.innerHTML += AI_shipsleft[3] + "x [3] ,"
+                }
+                if (AI_shipsleft[2] > 0) {
+                    info.innerHTML += AI_shipsleft[2] + "x [2] ,"
+                }
+                if (AI_shipsleft[1] > 0) {
+                    info.innerHTML += AI_shipsleft[1] + "x [1] ,"
+                }
+                info.innerHTML += "<br>"
+                info.innerHTML += "Oddany strzał: [" + AI_lastShot[0] + ", " + AI_lastShot[1] + "]<br>"
+                var huntMode = "ON"
+                if (AI_target_mode == 0) {
+                    huntMode = "OFF"
+                }
+                info.innerHTML += "Hunt mode: " + huntMode + "<br>"
+            }
+            function moveBlockOnPositionFixed(id, condition) {
+                if (condition == true) {
+                    var globalOffsetLeft;
+                    var globalOffsetTop;
+                    function moveBBAAEEffAASS() {
+                        var a = event.clientX - globalOffsetLeft;
+                        var b = event.clientY - globalOffsetTop;
+                        document.getElementById(id).style.position = "fixed";
+                        document.getElementById(id).style.left = a + "px";
+                        document.getElementById(id).style.top = b + "px";
+                    }
+                    function moveAAqQQWWWEEE() {
+                        document.getElementById(id).addEventListener("mousedown", function () {
+                            var left = document.getElementById(id).style.left
+                            left = left.substr(0, left.length - 2);
+                            globalOffsetLeft = event.clientX - left;
+                            var top = document.getElementById(id).style.top
+                            top = top.substr(0, top.length - 2);
+                            globalOffsetTop = event.clientY - top;
+                            window.addEventListener("mousemove", moveBBAAEEffAASS)
+                        })
+                        window.addEventListener("mouseup", function () {
+                            window.removeEventListener("mousemove", moveBBAAEEffAASS)
+                        })
+                    }
+                    document.getElementById(id).addEventListener("mouseover", moveAAqQQWWWEEE)
+                }
+                else {
+                    document.getElementById(id).removeEventListener("mouseover", moveAAqQQWWWEEE)
+                }
+
+            }
+            //#endregion
+
+            //#region luzny kod
+
+            //globalne zmienne dla control panel
+            var computerConf = "hidden";
+            var conf = "default"
+            generujSwitchRamki();
+            var globalFastGame = false;
+            var globalAI_mode = 4;
+            var globalExtraMove = true;
+            var globalShowBorders = false;
+            var globalShowAiTargeting = false;
+            generateHMdisplay()
+            var showControlPanel = false; //domyslnie panel niewidoczny
+            controlPanelOn() //aktywacja control panelu (nawet jesli ukryty)
+
+            //globalne zmienne uzywane przez AI
+            var AI_target_mode = 0;
+            var AI_lastShot;
+            var AI_targets = [];
+            var AI_nextTarget = 0;
+            var AI_shipsleft = [0, 4, 3, 2, 1];
+            var AI_heatmap = []
+            resetHeatMap();
+
+            // generacja planszy komputera
+            var planszaKomputera = document.getElementById("planszaKomputera");
+            var tablicaKomputera = [];
+            generujPlansze(planszaKomputera, tablicaKomputera, "komp");
+            rozmiescLosowo(tablicaKomputera);
+            render(tablicaKomputera, "komp", computerConf);
+
+            //generacja planszy gracza
+            var planszaGracza = document.getElementById("planszaGracza");
+            var tablicaGracza = [];
+            generujPlansze(planszaGracza, tablicaGracza, "gracz");
+
+            generujDock(); //generacja docku z w którym są niewstawione statki gracza
+
+            infoUpdate(0); //aktualizacja treści bloku info (przy uruchomieniu - jesli to sie nie aktywuje na stronie bedzie się świecił błąd)
+
+            //globalne zmienne używane przez funkcje pozwalające ustawiać statki przez gracza
+            var globalKier = 0;
+            var globalStatek;
+            var globalDl;
+            aktywujStatek("st40") // "po wejsciu na stronę od razu zaznaczona czworka"
+
+            //#region listenery
+
+            //dodanie globalnego listenera do planszy, który rejestruje right-click i zmienia globalKier
+            planszaGracza.addEventListener("contextmenu", planszaOnRightClick)
+
+            //losowanie dla gracza
+            document.getElementById("losujDlaGracza").addEventListener("click", losujDlaGraczaOnClick)
+
+            //START
+            document.getElementById("START").addEventListener("click", startOnClick)
+
+            //ekran dotykowy
+            window.addEventListener('touchstart', aktywujButttonZmianaKierunku);
+
+            //usuwanie dla gracza
+            document.getElementById("usunGracza").addEventListener("click", usunGraczaOnClick)
+
+
+            //#endregion
+
+            //#endregion
+
+            //
+            // - AI_cheatMode
+        }
+    </script>
+</head>
+
+<body>
+    <div id="all">
+        <div id="controlPanel"></div>
+        <div id="dockNaStatki">
+            <div id="START">START</div>
+        </div>
+        <div id="poleGracza" class="poleGry">
+            <h1>Gracz:</h1>
+            <div id="planszaGracza" class="plansza"></div>
+            <div id="losujDlaGracza">Losuj pozycje</div>
+            <div id="zmianaKierunku">Zmień kierunek</div>
+            <div id="usunGracza">Wyczyść planszę</div>
+        </div>
+        <div id="poleKomputera" class="poleGry">
+            <h1>Komputer:</h1>
+            <div id="planszaKomputera" class="plansza"></div>
+        </div>
+        <div id="info">
+            <h1>Jeśli widzisz ten napis, to znaczy że wystąpił błąd z wczytywaniem strony, lub twoja przeglądarka jest
+                nieaktualna.
+            </h1>
+        </div>
+    </div>
+    <div id="aiTargeting">
+        AI_Targeting
+        <div id="planszaHeatmap"></div>
+        <div id="targetingInfoDisplay">AI_inactive</div>
+    </div>
+</body>
+
+</html>
